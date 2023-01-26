@@ -143,7 +143,7 @@ def print_download_bar(total, downloaded, start, bar_len) -> None:
 
 def main():
     if not AUTH_TOKEN:
-        print('Set the AUTH_TOKEN variable with your discord auth token.')
+        print('Set the AUTH_TOKEN variable in myconfig.py with your discord auth token.')
         quit()
     channel_ids = CHANNEL_IDS
     user_ids = USER_IDS
@@ -159,3 +159,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    print("Complete.")
