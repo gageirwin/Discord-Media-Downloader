@@ -2,10 +2,7 @@ import requests
 import time
 import os
 import hashlib
-
-AUTH_TOKEN = ''
-DOWNLOAD_PATH = os.path.join(os.getcwd(), 'downloads')
-MAX_RETRIES = 10
+from myconfig import *
 
 def calculate_md5(file_path) -> str:
     hash_md5 = hashlib.md5()
@@ -14,32 +11,32 @@ def calculate_md5(file_path) -> str:
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
-def get_all_channel_messages(session, channel_id) -> list:
+def get_all_channel_messages(session, channel_id:str) -> list:
     channel_messages = retrieve_messages(session, channel_id)
     if len(channel_messages) < 50:
         return channel_messages
     while True:
         last_message_id = channel_messages[-1]['id']
-        more_channel_messages = retrieve_messages(session, channel_id, before_message_id=last_message_id)
+        more_channel_messages = retrieve_messages(session, channel_id, before_message_id=str(last_message_id))
         channel_messages += more_channel_messages
         if len(more_channel_messages) < 50:
             break
     return channel_messages
 
-def retrieve_messages(session, channel_id, before_message_id=None) -> list:
+def retrieve_messages(session, channel_id:str, before_message_id:str=None) -> list:
     params = {'limit':'50'}
     if before_message_id:
-        params['before'] = str(before_message_id)
+        params['before'] = before_message_id
     return session.get(f'https://discord.com/api/v9/channels/{channel_id}/messages', params=params).json()
 
-def filter_by_user_id(user_id, messages):
+def filter_by_user_ids(user_ids:list, messages:list) -> list:
     filtered_messages = []
     for message in messages:
-        if message['author']['id'] == user_id:
+        if message['author']['id'] in user_ids:
             filtered_messages.append(message)
     return filtered_messages
 
-def download_attachments(message):
+def download_attachments(message:dict) -> None:
     author = message['author']['username']
     for attachment in message['attachments']:
         if 'https://cdn.discordapp.com' == attachment['url'][:27]:
@@ -65,7 +62,7 @@ def download_attachments(message):
             else:
                 break
 
-def download(url, file_path, file_name):
+def download(url:str, file_path:str, file_name:str) -> None:
     print(f"Downloading: {file_name}")
     print(f"url: {url}")
     # maybe just check file size instead oh md5 hash
@@ -94,7 +91,7 @@ def download(url, file_path, file_name):
         print()
         return r.status_code
 
-def print_download_bar(total, downloaded, start, bar_len):
+def print_download_bar(total, downloaded, start, bar_len) -> None:
     td = time.time() - start
     
     if td == 0:
@@ -148,15 +145,15 @@ def main():
     if not AUTH_TOKEN:
         print('Set the AUTH_TOKEN variable with your discord auth token.')
         quit()
-    channel_ids = []
-    user_id = ''
+    channel_ids = CHANNEL_IDS
+    user_ids = USER_IDS
     headers = {'Authorization': AUTH_TOKEN}
     s = requests.Session()
     s.headers.update(headers)
     for channel_id in channel_ids:
         channel_messages = get_all_channel_messages(s, channel_id)
-        if user_id:
-            channel_messages = filter_by_user_id(user_id, channel_messages)
+        if user_ids:
+            channel_messages = filter_by_user_ids(user_ids, channel_messages)
         for message in channel_messages:
             download_attachments(message)
 
