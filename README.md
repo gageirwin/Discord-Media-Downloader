@@ -96,13 +96,19 @@ python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" "chann
 To download attachments from a channel posted by a specific user, run the following command:
 
 ```bash
-python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --filter-user-id USER_ID "channel_id"
+python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --filter-user-id "USER_ID" "channel_id"
 ```
 
-To download attachments from a direct message, run the following command:
+To download attachments from a channel posted by multiple specific users, run the following command:
 
 ```bash
-python discord_dl.py --token YOUR_TOKEN --path /path/to/download/folder "https://discord.com/channels/@me/channel_id"
+python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --filter-user-id "USER_ID_1,USER_ID_2,USER_ID_3" "channel_id"
+```
+
+To download attachments from a direct message with a URL, run the following command:
+
+```bash
+python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" "https://discord.com/channels/@me/channel_id"
 ```
 
 <!-- To download attachments from a channel posted within a specific date range, run the following command:
