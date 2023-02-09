@@ -85,4 +85,5 @@ python discord_dl.py --token YOUR_TOKEN --path /path/to/download/folder --filter
 
 ## Warnings
 
-This probably breaks Discords terms of service and you might get banned etc ...
+This probably breaks Discords terms of service and you might get banned etc ...  
+Use and alt account? 🤷‍♂️
