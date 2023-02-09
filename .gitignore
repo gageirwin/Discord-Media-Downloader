@@ -154,3 +154,4 @@ cython_debug/
 tempCodeRunnerFile.*
 test.*
 downloads/
+*.bat
