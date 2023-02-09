@@ -2,7 +2,6 @@ import requests
 import time
 import os
 from datetime import datetime
-from src.arguments import get_args
 from src.helper import sanitize_filename, sanitize_foldername, download
 
 class DiscordDownloader():
@@ -127,8 +126,3 @@ class DiscordDownloader():
             variables = self.get_channel_info(s, channel_id)
             for message in channel_messages:
                 self.download_attachments(message, variables)
-
-def main():
-    args = get_args()
-    dd = DiscordDownloader(args)
-    dd.run()
