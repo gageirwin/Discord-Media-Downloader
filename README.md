@@ -4,7 +4,7 @@ A python script that downloads media attachments from Discord server channels an
 
 ## Getting Started
 
-To get started, you will need to find your Discord Auth token. ***DO NOT*** share this token with anyone! ***DO NOT*** include your token is making a bug report! Anyone with this token can access your account.
+To get started, you will need to find your Discord Auth token. ***DO NOT*** share this token with anyone! ***DO NOT*** include your token when making a bug report! Anyone with this token can access your account.
 
 ## Usage
 
