@@ -82,3 +82,7 @@ python discord_dl.py --token YOUR_TOKEN --path /path/to/download/folder --filter
 ```bash
 python discord_dl.py --token YOUR_TOKEN --path /path/to/download/folder --filter-date-after 2020-01-01 --filter-date-before 2020-12-31 channel_id
 ``` -->
+
+## Warnings
+
+This probably breaks Discords terms of service and you might get banned etc ...
