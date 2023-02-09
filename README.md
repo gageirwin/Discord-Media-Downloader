@@ -25,7 +25,7 @@ python discord_dl.py --token TOKEN [OPTIONS] channel_id [channel_id ...]
     --windows-filenames     Force filenames to be Windows-compatible, filenames are Windows-compatible when using Windows
     --message-count         Only download attachments from the last # messages
     --filter-by-user-id     Only download attachments posted by this user id(s)
-    --filter-by-username       Only download attachments posted by this username(s) (Usernames are not unique! Usernames do not contain the #0000)
+    --filter-by-username    Only download attachments posted by this username(s) (Usernames are not unique! Usernames do not contain the #0000)
 <!-- --filter-date          Only download attachments posted on this date. -->
 <!-- --filter-date-before   Only download attachments posted before this date. -->
 <!-- --filter-date-after    Only download attachments posted after this date. -->
