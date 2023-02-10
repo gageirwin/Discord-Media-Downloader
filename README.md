@@ -74,10 +74,10 @@ URL based (direct message):
 --path "CURRENT_WORKING_DIRECTORY/downloads"
 ```
 ```bash    
---channel-format "servers/{server_name}_{server_id}/{channel_name}_{channel_id}/{username}_{user_id}/{date:%Y-%m-%d}_{id}_{filename}.{ext}"
+--channel-format "{date:%Y-%m-%d}_{id}_{filename}.{ext}"
 ```
 ```bash
---dm-format "direct_messages/{username}_{channel_id}/{username}_{user_id}/{date:%Y-%m-%d}_{id}_{filename}.{ext}"
+--dm-format "{date:%Y-%m-%d}_{id}_{filename}.{ext}"
 ```
 ## Examples
 
