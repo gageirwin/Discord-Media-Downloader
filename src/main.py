@@ -2,31 +2,38 @@ import requests
 import time
 import os
 from datetime import datetime
-from src.helper import sanitize_filename, sanitize_foldername, download
+from src.helper import sanitize_filename, sanitize_foldername, download, extract_channel_ids
+from src.logger import logger
 
 class DiscordDownloader():
 
     def __init__(self, args) -> None:
         self.args = args
-        # print(self.args.filter_by_username)
+        self.args.channel_ids = extract_channel_ids(args.channel_ids)
+        for attr in vars(args):
+            if attr == 'token':
+                continue
+            logger.debug(f"{attr}: {getattr(args, attr)}")
 
     def get_server_info(self, session, guild_id:str) -> dict:
-        respose = session.get(f"https://discord.com/api/v9/guilds/{guild_id}").json()
+        logger.info(f"Getting server info for server id {guild_id}")
+        response = session.get(f"https://discord.com/api/v9/guilds/{guild_id}").json()
         server_info = {
-            'server_id':respose['id'],
-            'server_name':respose['name'],
-            'server_owner_id':respose['owner_id']
+            'server_id':response['id'],
+            'server_name':response['name'],
+            'server_owner_id':response['owner_id']
         }
         return server_info
 
     def get_channel_info(self, session, channel_id:str) -> dict:
-        respose = session.get(f"https://discord.com/api/v9/channels/{channel_id}").json()
-        channel_info = {'channel_id':respose['id']}
+        logger.info(f"Getting channel info for channel id {channel_id}")
+        response = session.get(f"https://discord.com/api/v9/channels/{channel_id}").json()
+        channel_info = {'channel_id':response['id']}
         # server channel
-        if 'guild_id' in respose:
-            channel_info['channel_name'] = respose['name']
-            channel_info['channel_topic'] = respose['topic']
-            server_info = self.get_server_info(session, respose['guild_id'])
+        if 'guild_id' in response:
+            channel_info['channel_name'] = response['name']
+            channel_info['channel_topic'] = response['topic']
+            server_info = self.get_server_info(session, response['guild_id'])
             channel_info = {**channel_info, **server_info}
         return channel_info    
 
@@ -39,31 +46,37 @@ class DiscordDownloader():
                 last_message_id = messages[-1]['id']
                 more_messages = self.retrieve_messages(session, channel_id, count=self.args.message_count-len(messages), before_message_id=str(last_message_id))
                 messages += more_messages
-                if len(more_messages) < 50 or len(messages) == self.args.message_count:
+                if len(messages) == self.args.message_count:
+                    logger.debug(f"Found {len(messages)} messages for channel id {channel_id}")
+                    break
+                if len(more_messages) < 50:
+                    logger.debug(f"Found {len(messages)} messages for channel id {channel_id}")
                     break
         messages = self.filter_messages(messages)        
         return messages
 
     def retrieve_messages(self, session, channel_id:str, count=50, before_message_id:str=None) -> list:
-        if count < 0 or count > 50:
-            count = 50
+        count = count if 0 < count < 50 else 50
         params = {'limit':count}
         if before_message_id:
+            logger.info(f"Getting {count} messages before message {before_message_id} for channel {channel_id}")
             params['before'] = before_message_id
+        else:
+            logger.info(f"Getting {count} messages for channel {channel_id}")
         messages = session.get(f'https://discord.com/api/v9/channels/{channel_id}/messages', params=params).json()
         return messages
 
     def filter_messages(self, messages:list) -> list:
         filtered_messages = []
         for message in messages:
-            if self.args.filter_by_user_id:
-                if message['author']['id'] in self.args.filter_by_user_id:
-                    if message not in filtered_messages:
-                        filtered_messages.append(message)
-            if self.args.filter_by_username:
-                if message['author']['username'] in self.args.filter_by_username:
-                    if message not in filtered_messages:
-                        filtered_messages.append(message)                
+            if message['author']['id'] in self.args.filter_by_user_id:
+                logger.debug(f"Filter found user id {message['author']['id']} for message id {message['id']}")
+                filtered_messages.append(message)
+                continue
+            if message['author']['username'] in self.args.filter_by_username:
+                logger.debug(f"Filter found username {message['author']['username']} for message id {message['id']}")
+                filtered_messages.append(message)
+                continue               
         return filtered_messages
 
     def get_filepath(self, variables:dict):
@@ -89,9 +102,10 @@ class DiscordDownloader():
         for attachment in message['attachments']:
             time.sleep(self.args.sleep)
             if 'https://cdn.discordapp.com' == attachment['url'][:27]:
-                print("Warning attachment not hosted by discord skipping.")
+                logger.warning(f"Attachment not hosted by discord {attachment['url']}")
                 continue
             filename, ext = os.path.splitext(attachment['filename'])
+            variables['message_id'] = message['id']
             variables['id'] = attachment['id']
             variables['filename'] = filename
             variables['ext'] = ext[1:]
@@ -103,17 +117,18 @@ class DiscordDownloader():
             while retries < self.args.max_retries:
                 result = download(attachment['url'], file_path)
                 if result == 1:
-                    print('File already downloaded')
+                    logger.info('File already downloaded with matching hash and file name')
                     break
                 elif result == 404:
-                    print(f"Failed to download error {result}")
+                    logger.warning(f"{result} Failed to download url: {attachment['url']}")
                     break
                 elif result != 200:
                     retries += 1
                     sleep = 30 * retries
-                    print(f"Failed to download error {result} sleeping for {sleep} seconds")
+                    logger.warning(f"{result} Failed to download url: {attachment['url']}")   
+                    logger.info(f"Sleeping for {sleep} seconds")
                     time.sleep(sleep)
-                    print(f"Retrying download {retries}/10")
+                    logger.info(f"Retrying download {retries}/10")
                 else:
                     break
 
