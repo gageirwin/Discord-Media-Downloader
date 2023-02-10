@@ -38,13 +38,13 @@ def get_args():
     parser.add_argument(
         '--verbose',
         action='store_true',
-        help='Set logging to DEBUG',
+        help='Set logging level to DEBUG',
     )
 
     parser.add_argument(
         '--quiet',
         action='store_true',
-        help='Suppress logging except for WARNINGS and ERRORS.',
+        help='Set logging level to WARNING',
     )
 
     parser.add_argument(
