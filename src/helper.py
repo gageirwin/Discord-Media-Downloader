@@ -3,6 +3,7 @@ import requests
 import os
 import time
 import re
+from src.logger import logger
 
 def calculate_md5(file_path) -> str:
     hash_md5 = hashlib.md5()
@@ -27,24 +28,35 @@ def sanitize_foldername(string, windows_naming, restrict_filenames):
         string = string.strip(" .")
     return string
 
+def extract_channel_ids(channel_ids):
+    pattern = r"(\d+)|(https://discord.com/channels/[^/]+/(\d+))"
+    results = []
+    for channel_id in channel_ids:
+        match = re.search(pattern, channel_id)
+        if match:
+            results.append(match.group(1) if match.group(1) else match.group(3))
+        else:
+            logger.warning(f'Could not find discord channel id in: {channel_id}')
+    return results
+
 def download(url:str, filepath:str) -> None:
     file_path, filename = os.path.split(filepath)
-    print(f"Downloading: {filename}")
-    print(f"url: {url}")
-    # maybe just check file size instead oh md5 hash
-    local_md5 = ''
-    if os.path.exists(filepath):
-        local_md5 = calculate_md5(filepath)
+    logger.info(f"Downloading: {filename}")
+    logger.debug(f"Path: {file_path}")
+    logger.debug(f"URL: {url}")
+
+    local_md5 = calculate_md5(filepath) if os.path.exists(filepath) else None
     with requests.get(url, stream=True) as r:
         if r.status_code != 200:
             return r.status_code
-        server_md5 = r.headers.get('ETag', '_')
-        if server_md5 == '_':
-            print("Warning no server hash found for attachment")
-        elif server_md5 == f'"{local_md5}"':
+        server_md5 = r.headers.get('ETag', '')
+        if not server_md5:
+            logger.warning("No server hash found for attachment")
+        if server_md5 == f'"{local_md5}"':
             return 1
         total = int(r.headers.get('content-length', 0))
         if not os.path.exists(file_path):
+            logger.debug("Creating Path because it did not exist")
             os.makedirs(file_path)
         with open(filepath, 'wb') as f:
             start = time.time()
