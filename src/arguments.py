@@ -75,14 +75,14 @@ def get_args():
         '--channel-format',
         type=str,
         help='The format that attachments from server channels will be downloaded with',
-        default='servers/{server_name}_{server_id}/{channel_name}_{channel_id}/{username}_{user_id}/{date:%Y-%m-%d}_{id}_{filename}.{ext}'
+        default='{date:%Y-%m-%d}_{id}_{filename}.{ext}'
     )
     
     parser.add_argument(
         '--dm-format',
         type=str,
         help='The format that attachments from direct messages will be downloaded with',
-        default='direct_messages/{username}_{channel_id}/{username}_{user_id}/{date:%Y-%m-%d}_{id}_{filename}.{ext}'
+        default='{date:%Y-%m-%d}_{id}_{filename}.{ext}'
     )
 
     parser.add_argument(
@@ -161,5 +161,4 @@ def get_args():
     args = parser.parse_args()
     args.channel_ids += args.file if args.file is not None else []
     args.channel_ids = extract_channel_ids(args.channel_ids)
-    print(args.channel_ids)
     return args
