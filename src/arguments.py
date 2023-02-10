@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 from datetime import datetime
 
 class ListAction(argparse.Action):
@@ -26,26 +25,26 @@ class LoadFileAction(argparse.Action):
         else:
             setattr(namespace, self.dest, [])
 
-def extract_channel_ids(channel_ids):
-    pattern = r"(\d+)|(https://discord.com/channels/[^/]+/(\d+))"
-    results = []
-    for channel_id in channel_ids:
-        match = re.search(pattern, channel_id)
-        if match:
-            results.append(match.group(1) if match.group(1) else match.group(3))
-        else:
-            print(f'Warning could not find discord channel id in: {channel_id}')
-    return results
-
 def get_args():
     parser = argparse.ArgumentParser(description='Download discord media attachments')
 
-    # Add an argument with the option "-n" or "--name"
     parser.add_argument(
         '--token',
         type=str,
         help='Your Discord Auth token, DO NOT SHARE IT',
         required=True
+    )
+
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Set logging to DEBUG',
+    )
+
+    parser.add_argument(
+        '--quiet',
+        action='store_true',
+        help='Suppress logging except for WARNINGS and ERRORS.',
     )
 
     parser.add_argument(
@@ -160,5 +159,4 @@ def get_args():
     # Parse the arguments passed in the command-line
     args = parser.parse_args()
     args.channel_ids += args.file if args.file is not None else []
-    args.channel_ids = extract_channel_ids(args.channel_ids)
     return args
