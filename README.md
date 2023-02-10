@@ -15,6 +15,8 @@ python discord_dl.py --token TOKEN [OPTIONS] channel_id [channel_id ...]
 ## Options
 
     --token                 Your Discord Auth token, DO NOT SHARE IT
+    --verbose               Set logging level to DEBUG
+    --quiet                 Set logging level to WARNING
     --file                  File containing channel ids to download, one channel id per line. Lines starting with "#" are considered as comments and ignored
     --path                  The path where files will be downloaded to
     --channel-format        The format that attachments from server channels will be downloaded with
