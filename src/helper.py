@@ -7,7 +7,10 @@ from datetime import datetime
 from src.logger import logger
 
 def convert_discord_timestamp(timestamp):
-    return datetime.strptime(timestamp, r"%Y-%m-%dT%H:%M:%S.%f%z")
+    try:
+        return datetime.strptime(timestamp, r"%Y-%m-%dT%H:%M:%S.%f%z")
+    except ValueError:
+        return datetime.strptime(timestamp, r"%Y-%m-%dT%H:%M:%S%z")
 
 def calculate_md5(file_path) -> str:
     hash_md5 = hashlib.md5()
