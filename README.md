@@ -18,7 +18,7 @@ python discord_dl.py --token TOKEN [OPTIONS] channel_id [channel_id ...]
     --verbose               Set logging level to DEBUG
     --quiet                 Set logging level to WARNING
     --file                  File containing channel ids to download, one channel id per line. Lines starting with "#" are considered as comments and ignored
-    --path                  The path where files will be downloaded to
+    --path                  The path where files will be downloaded to. Path must exist and can not use format variables
     --channel-format        The format that attachments from server channels will be downloaded with
     --dm-format             The format that attachments from direct messages will be downloaded with
     --max-retries           The maximum number of times to attempt to download an attachment, Default is 0
