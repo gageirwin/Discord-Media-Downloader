@@ -1,7 +1,8 @@
 import requests
 import time
 import os
-from src.helper import sanitize_filename, sanitize_foldername, download, extract_channel_ids, convert_discord_timestamp
+import random
+from src.utils import sanitize_filename, sanitize_foldername, download, extract_channel_ids, convert_discord_timestamp
 from src.logger import logger
 
 class DiscordDownloader():
@@ -52,6 +53,10 @@ class DiscordDownloader():
             if len(messages_chunk) < 50:
                 logger.debug(f"Got {len(messages)} messages for channel id {channel_id}")
                 return self.find_messages(messages)
+            if self.args.sleep or (self.args.sleep_random[0] != 0 and self.args.sleep_random[1] != 0):
+                sleep = self.args.sleep + random.uniform(self.args.sleep_random[0], self.args.sleep_random[1])
+                logger.info(f"Sleeping for {sleep} seconds")
+                time.sleep(sleep)
 
     def retrieve_messages(self, session, channel_id:str, before_message_id:str=None) -> list:
         params = {'limit':50}
@@ -106,7 +111,6 @@ class DiscordDownloader():
 
     def download_attachments(self, message:dict, variables:dict) -> None:
         for attachment in message['attachments']:
-            time.sleep(self.args.sleep)
             if 'https://cdn.discordapp.com' == attachment['url'][:27]:
                 logger.warning(f"Attachment not hosted by discord {attachment['url']}")
                 continue
@@ -137,6 +141,10 @@ class DiscordDownloader():
                     logger.info(f"Retrying download {retries}/10")
                 else:
                     break
+            if self.args.sleep or (self.args.sleep_random[0] != 0 and self.args.sleep_random[1] != 0):
+                sleep = self.args.sleep + random.uniform(self.args.sleep_random[0], self.args.sleep_random[1])
+                logger.info(f"Sleeping for {sleep} seconds")
+                time.sleep(sleep)
 
     def run(self):
         headers = {'Authorization': self.args.token}
