@@ -1,8 +1,7 @@
 import requests
 import time
 import os
-from datetime import datetime
-from src.helper import sanitize_filename, sanitize_foldername, download, extract_channel_ids
+from src.helper import sanitize_filename, sanitize_foldername, download, extract_channel_ids, convert_discord_timestamp
 from src.logger import logger
 
 class DiscordDownloader():
@@ -38,46 +37,50 @@ class DiscordDownloader():
         return channel_info    
 
     def get_all_messages(self, session, channel_id:str) -> list:
-        if self.args.message_count == 0:
-            return []
-        messages = self.retrieve_messages(session, channel_id, count=self.args.message_count)
-        if len(messages) == 50 and len(messages) != self.args.message_count:
-            while True:
-                last_message_id = messages[-1]['id']
-                more_messages = self.retrieve_messages(session, channel_id, count=self.args.message_count-len(messages), before_message_id=str(last_message_id))
-                messages += more_messages
-                if len(messages) == self.args.message_count:
-                    logger.debug(f"Found {len(messages)} messages for channel id {channel_id}")
-                    break
-                if len(more_messages) < 50:
-                    logger.debug(f"Found {len(messages)} messages for channel id {channel_id}")
-                    break
-        messages = self.filter_messages(messages)        
-        return messages
+        messages = []
+        last_message_id = None
+        while True:
+            messages_chunk = self.retrieve_messages(session, channel_id, before_message_id=last_message_id)
+            messages += messages_chunk
+            last_message_id = messages_chunk[-1]['id']
+            if self.args.message_count >= 0 and len(messages) >= self.args.message_count:
+                logger.debug(f"Got {len(messages[:self.args.message_count])} messages for channel id {channel_id}")
+                return self.find_messages(messages[:self.args.message_count])
+            if len(messages_chunk) < 50:
+                logger.debug(f"Got {len(messages)} messages for channel id {channel_id}")
+                return self.find_messages(messages)
 
-    def retrieve_messages(self, session, channel_id:str, count=50, before_message_id:str=None) -> list:
-        count = count if 0 < count < 50 else 50
-        params = {'limit':count}
+    def retrieve_messages(self, session, channel_id:str, before_message_id:str=None) -> list:
+        params = {'limit':50}
         if before_message_id:
-            logger.info(f"Getting {count} messages before message {before_message_id} for channel {channel_id}")
+            logger.info(f"Getting messages before message id {before_message_id} for channel id {channel_id}")
             params['before'] = before_message_id
         else:
-            logger.info(f"Getting {count} messages for channel {channel_id}")
+            logger.info(f"Getting messages for channel id {channel_id}")
         messages = session.get(f'https://discord.com/api/v9/channels/{channel_id}/messages', params=params).json()
         return messages
 
-    def filter_messages(self, messages:list) -> list:
-        filtered_messages = []
+    def find_messages(self, messages:list) -> list:
+        filtered_data = []
         for message in messages:
-            if message['author']['id'] in self.args.filter_by_user_id:
-                logger.debug(f"Filter found user id {message['author']['id']} for message id {message['id']}")
-                filtered_messages.append(message)
+            message_date = convert_discord_timestamp(message['timestamp']).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+            if self.args.date and message_date != self.args.date:
+                logger.debug(f"Message date {message_date:%Y-%m-%d} != args.date {self.args.date:%Y-%m-%d} for message id {message['id']}")
                 continue
-            if message['author']['username'] in self.args.filter_by_username:
-                logger.debug(f"Filter found username {message['author']['username']} for message id {message['id']}")
-                filtered_messages.append(message)
-                continue               
-        return filtered_messages
+            if self.args.date_before and message_date >= self.args.date_before:
+                logger.debug(f"Message date {message_date:%Y-%m-%d} >= args.date_before {self.args.date_before:%Y-%m-%d} for message id {message['id']}")
+                continue
+            if self.args.date_after and message_date <= self.args.date_after:
+                logger.debug(f"Message date {message_date:%Y-%m-%d} <= args.date_after {self.args.date_after:%Y-%m-%d} for message id {message['id']}")
+                continue
+            if self.args.username and message['author']['username'] not in self.args.username:
+                logger.debug(f"Message username {message['author']['username']} is not in args.username {self.args.username} for message id {message['id']}")
+                continue
+            if self.args.user_id and message['author']['id'] not in self.args.user_id:
+                logger.debug(f"Message user id {message['author']['id']} is not in args.user_id {self.args.user_id} for message id {message['id']}")
+                continue
+            filtered_data.append(message)
+        return filtered_data
 
     def get_filepath(self, variables:dict):
         if 'server_id' in variables:
@@ -109,13 +112,13 @@ class DiscordDownloader():
             variables['id'] = attachment['id']
             variables['filename'] = filename
             variables['ext'] = ext[1:]
-            variables['date'] = datetime.strptime(message['timestamp'], r"%Y-%m-%dT%H:%M:%S.%f%z")
+            variables['date'] = convert_discord_timestamp(message['timestamp'])
             variables['username'] = message['author']['username']
             variables['user_id'] = message['author']['id']
             file_path = self.get_filepath(variables)
             retries = 0
             while retries < self.args.max_retries:
-                result = download(attachment['url'], file_path)
+                result = download(attachment['url'], file_path, self.args.simulate)
                 if result == 1:
                     logger.info('File already downloaded with matching hash and file name')
                     break
