@@ -13,6 +13,9 @@ class DiscordDownloader():
             if attr == 'token':
                 continue
             logger.debug(f"{attr}: {getattr(args, attr)}")
+        if not os.path.exists(self.args.path):
+            logger.error(f"--path does not exist: {self.args.path}")
+            exit()
 
     def get_server_info(self, session, guild_id:str) -> dict:
         logger.info(f"Getting server info for server id {guild_id}")
