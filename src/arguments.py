@@ -8,7 +8,7 @@ class ListAction(argparse.Action):
 
 class DateAction(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
-        date = datetime.strptime(values, r'%Y-%m-%d')
+        date = datetime.strptime(values, r'%Y%m%d')
         setattr(args, self.dest, date)
 
 class LoadFileAction(argparse.Action):
@@ -113,7 +113,7 @@ def get_args():
     )
 
     parser.add_argument(
-        '--filter-by-user-id',
+        '--user-id',
         type=str,
         help='Only download attachments posted by this user id(s)',
         action=ListAction,
@@ -121,7 +121,7 @@ def get_args():
     )
 
     parser.add_argument(
-        '--filter-by-username',
+        '--username',
         type=str,
         help='Only download attachments posted by this username(s) (Usernames are not unique! Usernames do not contain the #0000)',
         action=ListAction,
@@ -135,28 +135,39 @@ def get_args():
         default=-1
     )
 
-    # parser.add_argument(
-    #     '--filter-date',
-    #     type=str,
-    #     action=DateAction,
-    #     help='Only download attachments posted at this date',
-    # )
+    parser.add_argument(
+        '--date',
+        type=str,
+        action=DateAction,
+        help='Only download attachments from messages posted at this date in YYYYMMDD format',
+        default=None
+    )
 
-    # parser.add_argument(
-    #     '--filter-date-before',
-    #     type=str,
-    #     action=DateAction,
-    #     help='Only download attachments posted before this date',
-    # )
+    parser.add_argument(
+        '--date-before',
+        type=str,
+        action=DateAction,
+        help='Only download attachments from messages posted before this date in YYYYMMDD format',
+        default=None
+    )
 
-    # parser.add_argument(
-    #     '--filter-date-after',
-    #     type=str,
-    #     action=DateAction,
-    #     help='Only download attachments posted after this date',
-    # )
+    parser.add_argument(
+        '--date-after',
+        type=str,
+        action=DateAction,
+        help='Only download attachments from messages posted after this date in YYYYMMDD format',
+        default=None
+    )
+
+    parser.add_argument(
+        '--simulate',
+        action='store_true',
+        help='Do not write to disc',
+    )
 
     # Parse the arguments passed in the command-line
     args = parser.parse_args()
     args.channel_ids += args.file if args.file is not None else []
+
+
     return args
