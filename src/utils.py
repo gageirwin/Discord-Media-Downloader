@@ -81,7 +81,7 @@ def download(url:str, filepath:str, simulate=False) -> None:
     print()
     return 200
 
-def bytes_to_string(bytes:str):
+def calculate_bytes(bytes:str):
     if bytes/2**10 < 100:
         return (round(bytes/2**10, 1), 'KB')
     if bytes/2**20 < 100:
@@ -94,21 +94,21 @@ def bytes_to_string(bytes:str):
 def print_download_bar(total, downloaded, start, bar_len) -> None:
     td = time.time() - start
     td = 0.0000001 if td == 0 else td
-    rate, rate_size = bytes_to_string((downloaded)/td)
+    rate, rate_size = calculate_bytes((downloaded)/td)
     eta = time.strftime("%H:%M:%S", time.gmtime((total-downloaded) / rate))
 
     if total:
         done = int(50*downloaded/total)
         bar_fill = '='*done
         bar_empty = ' '*(50-done)
-        total, size = bytes_to_string(total)
-        downloaded, _ = bytes_to_string(downloaded)
+        total, size = calculate_bytes(total)
+        downloaded, _ = calculate_bytes(downloaded)
     else:
         done = 50
         bar_fill = '?'*done
         bar_empty = ' '*(50-done)
         total = '???'
-        downloaded, size = bytes_to_string(downloaded)
+        downloaded, size = calculate_bytes(downloaded)
         eta = '??:??:??'
 
     progress_bar = f'[{bar_fill}{bar_empty}] {downloaded}/{total} {size} at {rate} {rate_size}/s ETA {eta}'
