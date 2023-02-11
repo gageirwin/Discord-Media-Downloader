@@ -152,6 +152,7 @@ cython_debug/
 #.idea/
 
 tempCodeRunnerFile.*
-test.*
+*/tempCodeRunnerFile.*
+test/
 downloads/
 *.bat
