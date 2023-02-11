@@ -65,8 +65,19 @@ class DiscordDownloader():
             params['before'] = before_message_id
         else:
             logger.info(f"Getting messages for channel id {channel_id}")
-        messages = session.get(f'https://discord.com/api/v9/channels/{channel_id}/messages', params=params).json()
-        return messages
+        retries = 0
+        while retries < self.args.max_retries:
+            try:
+                messages = session.get(f'https://discord.com/api/v9/channels/{channel_id}/messages', params=params).json()
+            except ConnectionError:
+                retries += 1
+                sleep = 30 * retries
+                logger.warning(f"{messages.status_code} Failed to get messages with url: {messages.url}")   
+                logger.info(f"Sleeping for {sleep} seconds")
+                time.sleep(sleep)
+                logger.info(f"Retrying download {retries}/{self.args.max_retries}")
+            else:
+                return messages
 
     def find_messages(self, messages:list) -> list:
         filtered_data = []
@@ -138,7 +149,7 @@ class DiscordDownloader():
                     logger.warning(f"{result} Failed to download url: {attachment['url']}")   
                     logger.info(f"Sleeping for {sleep} seconds")
                     time.sleep(sleep)
-                    logger.info(f"Retrying download {retries}/10")
+                    logger.info(f"Retrying download {retries}/{self.args.max_retries}")
                 else:
                     break
             if self.args.sleep or (self.args.sleep_random[0] != 0 and self.args.sleep_random[1] != 0):
@@ -148,10 +159,10 @@ class DiscordDownloader():
 
     def run(self):
         headers = {'Authorization': self.args.token}
-        s = requests.Session()
-        s.headers.update(headers)
+        session = requests.Session()
+        session.headers.update(headers)
         for channel_id in self.args.channel_ids:
-            channel_messages = self.get_all_messages(s, channel_id)
-            variables = self.get_channel_info(s, channel_id)
+            channel_messages = self.get_all_messages(session, channel_id)
+            variables = self.get_channel_info(session, channel_id)
             for message in channel_messages:
                 self.download_attachments(message, variables)
