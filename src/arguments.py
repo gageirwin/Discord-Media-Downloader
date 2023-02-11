@@ -66,7 +66,7 @@ def get_args():
     parser.add_argument(
         '--path',
         type=str,
-        help='The path where files will be downloaded to',
+        help='The path where files will be downloaded to. Path must exist and can not use format variables',
         default=os.path.join(os.getcwd(), 'downloads')
     )
 
