@@ -21,8 +21,9 @@ python discord_dl.py --token TOKEN [OPTIONS] channel_id [channel_id ...]
     --path                  The path where files will be downloaded to. Path must exist and can not use format variables
     --channel-format        The format that attachments from server channels will be downloaded with
     --dm-format             The format that attachments from direct messages will be downloaded with
-    --max-retries           The maximum number of times to attempt to download an attachment, Default is 0
-    --sleep                 The number of seconds to wait before attempting to download the next attachment, Default is 0
+    --max-retries           The maximum number of times to attempt to download an attachment, Default is 10
+    --sleep                 How long to sleep downloading attachments and retrieving messages, Default is 0
+    --sleep-random          Set a random range from A to B to sleep in between downloading attachments and retrieving messages, If using --sleep the random time will be added on
     --restrict-filenames    Restrict filenames to only ASCII characters and remove spaces
     --windows-filenames     Force filenames to be Windows-compatible, filenames are Windows-compatible when using Windows
     --message-count         Only download attachments from the last # messages
