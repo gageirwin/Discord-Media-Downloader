@@ -101,8 +101,16 @@ def get_args():
     parser.add_argument(
         '--sleep',
         type=int,
-        help='How long to sleep before attempting to download the next attachment, Default is 0',
+        help='How long to sleep in between downloading attachments and retrieving messages, Default is 0',
         default=0
+    )
+
+    parser.add_argument(
+        '--sleep-random',
+        type=int,
+        nargs=2,
+        help='Set a random range from A to B to sleep in between downloading attachments and retrieving messages, If using --sleep the random time will be added on',
+        default=[0, 0]
     )
 
     parser.add_argument(
