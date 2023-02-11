@@ -26,11 +26,11 @@ python discord_dl.py --token TOKEN [OPTIONS] channel_id [channel_id ...]
     --restrict-filenames    Restrict filenames to only ASCII characters and remove spaces
     --windows-filenames     Force filenames to be Windows-compatible, filenames are Windows-compatible when using Windows
     --message-count         Only download attachments from the last # messages
-    --filter-by-user-id     Only download attachments posted by this user id(s)
-    --filter-by-username    Only download attachments posted by this username(s) (Usernames are not unique! Usernames do not contain the #0000)
-<!-- --filter-date          Only download attachments posted on this date. -->
-<!-- --filter-date-before   Only download attachments posted before this date. -->
-<!-- --filter-date-after    Only download attachments posted after this date. -->
+    --user-id               Only download attachments from messages posted by this user id(s)
+    --username              Only download attachments from messages posted by this username(s) (Usernames are not unique! Usernames do not contain the #0000)
+    --date                  Only download attachments from messages posted on this date.
+    --date-before           Only download attachments from messages posted before this date.
+    --date-after            Only download attachments from messages posted after this date.
 
 ### Allowed Channel IDs 
 
@@ -98,13 +98,13 @@ python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" "chann
 To download attachments from a channel posted by a specific user, run the following command:
 
 ```bash
-python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --filter-user-id "USER_ID" "channel_id"
+python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --user-id "USER_ID" "channel_id"
 ```
 
 To download attachments from a channel posted by multiple specific users, run the following command:
 
 ```bash
-python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --filter-user-id "USER_ID_1,USER_ID_2,USER_ID_3" "channel_id"
+python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --user-id "USER_ID_1,USER_ID_2,USER_ID_3" "channel_id"
 ```
 
 To download attachments from a direct message with a URL, run the following command:
@@ -113,11 +113,11 @@ To download attachments from a direct message with a URL, run the following comm
 python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" "https://discord.com/channels/@me/channel_id"
 ```
 
-<!-- To download attachments from a channel posted within a specific date range, run the following command:
+To download attachments from a channel posted within a specific date range, run the following command:
 
 ```bash
-python discord_dl.py --token YOUR_TOKEN --path /path/to/download/folder --filter-date-after 2020-01-01 --filter-date-before 2020-12-31 channel_id
-``` -->
+python discord_dl.py --token YOUR_TOKEN --path "/path/to/download/folder" --date-after 2020-01-01 --date-before 2020-12-31 "channel_id"
+```
 
 ## Warnings
 
