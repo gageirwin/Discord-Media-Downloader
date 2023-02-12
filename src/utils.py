@@ -3,8 +3,43 @@ import requests
 import os
 import time
 import re
+import random
 from datetime import datetime
 from src.logger import logger
+
+def create_format_variables(message:dict, attachment:dict, index:int=0) -> dict:
+    variables = {}
+    filename, ext = os.path.splitext(attachment['filename'])
+    variables['message_id'] = message['id']
+    variables['id'] = attachment['id']
+    variables['filename'] = filename
+    variables['ext'] = ext[1:]
+    variables['date'] = convert_discord_timestamp(message['timestamp'])
+    variables['username'] = message['author']['username']
+    variables['user_id'] = message['author']['id']
+    return variables
+
+def create_filepath(variables:dict, path:str, channel_format_template:str, dm_format_template:str, win_filenames:bool, restrict_filenames:bool) -> str:
+    format_template = channel_format_template if 'server_id' in variables else dm_format_template
+    components = []
+    first = True
+    while format_template:
+        head, tail = os.path.split(format_template)
+        if first:
+            components.insert(0, sanitize_filename(tail.format(**variables), win_filenames, restrict_filenames))
+            first = False
+        else:
+            components.insert(0, sanitize_foldername(tail.format(**variables), win_filenames, restrict_filenames))
+        format_template = head
+    components.insert(0, path)
+    filepath = os.path.join(*components)
+    return filepath  
+
+def mysleep(sleep_base:int, sleep_range:list):
+    if sleep_base or (sleep_range[0] != 0 and sleep_range[1] != 0):
+        sleep = sleep_base + random.uniform(sleep_range[0], sleep_range[1])
+        logger.info(f"Sleeping for {sleep} seconds")
+        time.sleep(sleep)
 
 def convert_discord_timestamp(timestamp):
     try:
