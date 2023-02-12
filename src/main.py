@@ -1,8 +1,7 @@
 import requests
 import time
 import os
-import random
-from src.utils import sanitize_filename, sanitize_foldername, download, extract_channel_ids, convert_discord_timestamp
+from src.utils import sanitize_filename, sanitize_foldername, download, extract_channel_ids, convert_discord_timestamp, mysleep, create_format_variables, create_filepath
 from src.logger import logger
 
 class DiscordDownloader():
@@ -53,10 +52,7 @@ class DiscordDownloader():
             if len(messages_chunk) < 50:
                 logger.debug(f"Got {len(messages)} messages for channel id {channel_id}")
                 return self.find_messages(messages)
-            if self.args.sleep or (self.args.sleep_random[0] != 0 and self.args.sleep_random[1] != 0):
-                sleep = self.args.sleep + random.uniform(self.args.sleep_random[0], self.args.sleep_random[1])
-                logger.info(f"Sleeping for {sleep} seconds")
-                time.sleep(sleep)
+            mysleep(self.args.sleep, self.args.sleep_random)
 
     def retrieve_messages(self, session, channel_id:str, before_message_id:str=None) -> list:
         params = {'limit':50}
@@ -101,61 +97,26 @@ class DiscordDownloader():
             filtered_data.append(message)
         return filtered_data
 
-    def get_filepath(self, variables:dict):
-        if 'server_id' in variables:
-            path_template = self.args.channel_format
-        else:
-            path_template = self.args.dm_format
-        components = []
-        first = True
-        while path_template:
-            head, tail = os.path.split(path_template)
-            if first:
-                components.insert(0, sanitize_filename(tail.format(**variables), self.args.windows_filenames, self.args.restrict_filenames))
-                first = False
-            else:
-                components.insert(0, sanitize_foldername(tail.format(**variables), self.args.windows_filenames, self.args.restrict_filenames))
-            path_template = head
-        components.insert(0, self.args.path)
-        filepath = os.path.join(*components)
-        return filepath  
-
-    def download_attachments(self, message:dict, variables:dict) -> None:
-        for attachment in message['attachments']:
-            if 'https://cdn.discordapp.com' == attachment['url'][:27]:
-                logger.warning(f"Attachment not hosted by discord {attachment['url']}")
-                continue
-            filename, ext = os.path.splitext(attachment['filename'])
-            variables['message_id'] = message['id']
-            variables['id'] = attachment['id']
-            variables['filename'] = filename
-            variables['ext'] = ext[1:]
-            variables['date'] = convert_discord_timestamp(message['timestamp'])
-            variables['username'] = message['author']['username']
-            variables['user_id'] = message['author']['id']
-            file_path = self.get_filepath(variables)
-            retries = 0
-            while retries < self.args.max_retries:
-                result = download(attachment['url'], file_path, self.args.simulate)
-                if result == 1:
-                    logger.info('File already downloaded with matching hash and file name')
-                    break
-                elif result == 404:
-                    logger.warning(f"{result} Failed to download url: {attachment['url']}")
-                    break
-                elif result != 200:
-                    retries += 1
-                    sleep = 30 * retries
-                    logger.warning(f"{result} Failed to download url: {attachment['url']}")   
-                    logger.info(f"Sleeping for {sleep} seconds")
-                    time.sleep(sleep)
-                    logger.info(f"Retrying download {retries}/{self.args.max_retries}")
-                else:
-                    break
-            if self.args.sleep or (self.args.sleep_random[0] != 0 and self.args.sleep_random[1] != 0):
-                sleep = self.args.sleep + random.uniform(self.args.sleep_random[0], self.args.sleep_random[1])
+    def download_attachment(self, attachment:dict, variables:dict) -> None:
+        filepath = create_filepath(variables, self.args.path, self.args.channel_format, self.args.dm_format, self.args.windows_filenames, self.args.restrict_filenames)
+        retries = 0
+        while retries < self.args.max_retries:
+            result = download(attachment['url'], filepath, self.args.simulate)
+            if result == 1:
+                logger.info('File already downloaded with matching hash and file name')
+                break
+            elif result == 404:
+                logger.warning(f"{result} Failed to download url: {attachment['url']}")
+                break
+            elif result != 200:
+                retries += 1
+                sleep = 30 * retries
+                logger.warning(f"{result} Failed to download url: {attachment['url']}")   
                 logger.info(f"Sleeping for {sleep} seconds")
                 time.sleep(sleep)
+                logger.info(f"Retrying download {retries}/{self.args.max_retries}")
+            else:
+                break
 
     def run(self):
         headers = {'Authorization': self.args.token}
@@ -165,4 +126,10 @@ class DiscordDownloader():
             channel_messages = self.get_all_messages(session, channel_id)
             variables = self.get_channel_info(session, channel_id)
             for message in channel_messages:
-                self.download_attachments(message, variables)
+                for attachment in message['attachments']:
+                    if 'https://cdn.discordapp.com' == attachment['url'][:27]:
+                        logger.warning(f"Attachment not hosted by discord {attachment['url']}")
+                        continue
+                    variables = create_format_variables(message, attachment)
+                    self.download_attachment(attachment, variables)
+                    mysleep(self.args.sleep, self.args.sleep_random)
