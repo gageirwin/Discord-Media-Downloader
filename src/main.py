@@ -1,7 +1,7 @@
 import requests
 import time
 import os
-from src.utils import sanitize_filename, sanitize_foldername, download, extract_channel_ids, convert_discord_timestamp, mysleep, create_format_variables, create_filepath
+from src.utils import download, extract_channel_ids, convert_discord_timestamp, mysleep, create_format_variables, create_filepath
 from src.logger import logger
 
 class DiscordDownloader():
