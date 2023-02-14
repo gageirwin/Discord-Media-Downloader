@@ -8,15 +8,16 @@ from datetime import datetime
 from src.logger import logger
 
 def create_format_variables(message:dict, attachment:dict, index:int=0) -> dict:
-    variables = {}
-    filename, ext = os.path.splitext(attachment['filename'])
-    variables['message_id'] = message['id']
-    variables['id'] = attachment['id']
-    variables['filename'] = filename
-    variables['ext'] = ext[1:]
-    variables['date'] = convert_discord_timestamp(message['timestamp'])
-    variables['username'] = message['author']['username']
-    variables['user_id'] = message['author']['id']
+    variables = {
+        'filename':os.path.splitext(attachment['filename'])[0],
+        'ext':os.path.splitext(attachment['filename'])[1][1:],
+        'message_id':message['id'],
+        'id':attachment['id'],
+        'date':convert_discord_timestamp(message['timestamp']),
+        'username':message['author']['username'],
+        'user_id':message['author']['id'],
+    }
+    logger.debug(f"Format variables: {variables}")
     return variables
 
 def create_filepath(variables:dict, path:str, channel_format_template:str, dm_format_template:str, win_filenames:bool, restrict_filenames:bool) -> str:
