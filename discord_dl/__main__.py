@@ -1,5 +1,4 @@
-from src.main import DiscordDownloader
-from src.arguments import get_args
+from src import DiscordDownloader, get_args
 
 if __name__ == '__main__':
     args = get_args()

@@ -9,7 +9,7 @@ To get started, you will need to find your Discord Auth token. ***DO NOT*** shar
 ## Usage
 
 ```bash
-python discord_dl.py --token TOKEN [OPTIONS] channel_id [channel_id ...]
+python discord_dl --token TOKEN [OPTIONS] channel_id [channel_id ...]
 ```
 
 ## Options
