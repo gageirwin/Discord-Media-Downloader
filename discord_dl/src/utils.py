@@ -87,34 +87,33 @@ def download(url:str, filepath:str, simulate=False) -> None:
     logger.debug(f"Path: {file_path}")
     logger.debug(f"URL: {url}")
 
-    if not simulate:
-        local_md5 = calculate_md5(filepath) if os.path.exists(filepath) else None
-        with requests.get(url, stream=True) as r:
-            if r.status_code != 200:
-                return r.status_code
-            server_md5 = r.headers.get('ETag', '')
-            if not server_md5:
-                logger.warning("No server hash found for attachment")
-            if server_md5 == f'"{local_md5}"':
-                return 1
-            total = int(r.headers.get('content-length', 0))
-            if not os.path.exists(file_path):
-                logger.debug("Creating Path because it did not exist")
-                os.makedirs(file_path)
-            start = time.time()
-            with open(filepath, 'wb') as f:
-                bar_len = 0
-                downloaded = 0
-                for chunk in r.iter_content(chunk_size=8192):
-                    downloaded += len(chunk) 
-                    f.write(chunk)
-                    bar_len = print_download_bar(total, downloaded, start, bar_len)
+    local_md5 = calculate_md5(filepath) if os.path.exists(filepath) else None
+    with requests.get(url, stream=True) as r:
+        if r.status_code != 200:
+            return r.status_code
+        server_md5 = r.headers.get('ETag', '')
+        if not server_md5:
+            logger.warning("No server hash found for attachment")
+        if server_md5 == f'"{local_md5}"':
+            return 1
+        total = int(r.headers.get('content-length', 0))
+        if not os.path.exists(file_path):
+            logger.debug("Creating Path because it did not exist")
+            os.makedirs(file_path)
+        start = time.time()
+        if simulate:
+            print_download_bar(1, 1, start, 0)
             print()
-        return r.status_code
-    start = time.time()
-    print_download_bar(1, 1, start, 0)
-    print()
-    return 200
+            return 200
+        with open(filepath, 'wb') as f:
+            bar_len = 0
+            downloaded = 0
+            for chunk in r.iter_content(chunk_size=8192):
+                downloaded += len(chunk) 
+                f.write(chunk)
+                bar_len = print_download_bar(total, downloaded, start, bar_len)
+        print()
+    return r.status_code
 
 def calculate_bytes(bytes:str):
     if bytes/2**10 < 100:
@@ -124,20 +123,30 @@ def calculate_bytes(bytes:str):
     if bytes/2**30 < 100:
         return (round(bytes/2**30, 1), 'GB')
     if bytes/2**40 < 100:
-        return (round(bytes/2**40, 1), 'TB')    
+        return (round(bytes/2**40, 1), 'TB')  
+
+def convert_bytes(bytes:int, size:str):
+    if size == 'KB':
+        return round(bytes/2**10, 1)
+    elif size == 'MB':
+        return round(bytes/2**20, 1)
+    elif size == 'GB':
+        return round(bytes/2**30, 1)
+    elif size == 'TB':
+        return round(bytes/2**40, 1)  
 
 def print_download_bar(total, downloaded, start, bar_len) -> None:
     td = time.time() - start
     td = 0.0000001 if td == 0 else td
     rate, rate_size = calculate_bytes((downloaded)/td)
-    eta = time.strftime("%H:%M:%S", time.gmtime((total-downloaded) / rate))
+    eta = time.strftime("%H:%M:%S", time.gmtime((total-downloaded) / (downloaded/td)))
 
     if total:
         done = int(50*downloaded/total)
         bar_fill = '='*done
         bar_empty = ' '*(50-done)
         total, size = calculate_bytes(total)
-        downloaded, _ = calculate_bytes(downloaded)
+        downloaded = convert_bytes(downloaded, size)
     else:
         done = 50
         bar_fill = '?'*done
