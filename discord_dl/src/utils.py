@@ -17,7 +17,6 @@ def create_format_variables(message:dict, attachment:dict, index:int=0) -> dict:
         'username':message['author']['username'],
         'user_id':message['author']['id'],
     }
-    logger.debug(f"Format variables: {variables}")
     return variables
 
 def create_filepath(variables:dict, path:str, channel_format_template:str, dm_format_template:str, win_filenames:bool, restrict_filenames:bool) -> str:
