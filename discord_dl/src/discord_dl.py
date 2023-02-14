@@ -154,5 +154,6 @@ class DiscordDownloader():
                         logger.warning(f"Attachment not hosted by discord {attachment['url']}")
                         continue
                     variables = {**create_format_variables(message, attachment), **channel_variables}
+                    logger.debug(f"Format variables: {variables}")
                     self.download_attachment(attachment, variables)
                     mysleep(self.sleep, self.sleep_random)
