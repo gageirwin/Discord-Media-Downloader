@@ -130,6 +130,6 @@ class DiscordDownloader():
                     if 'https://cdn.discordapp.com' == attachment['url'][:27]:
                         logger.warning(f"Attachment not hosted by discord {attachment['url']}")
                         continue
-                    variables = create_format_variables(message, attachment)
+                    variables = {**create_format_variables(message, attachment), **variables}
                     self.download_attachment(attachment, variables)
                     mysleep(self.args.sleep, self.args.sleep_random)
