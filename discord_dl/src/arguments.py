@@ -67,21 +67,21 @@ def get_args():
         '--path',
         type=str,
         help='The path where files will be downloaded to. Path must exist and can not use format variables',
-        default=os.path.join(os.getcwd(), 'downloads')
+        default=os.getcwd()
     )
 
     parser.add_argument(
         '--channel-format',
         type=str,
         help='The format that attachments from server channels will be downloaded with',
-        default='{date:%Y-%m-%d}_{id}_{filename}.{ext}'
+        default='downloads/{date:%Y-%m-%d}_{id}_{filename}.{ext}'
     )
     
     parser.add_argument(
         '--dm-format',
         type=str,
         help='The format that attachments from direct messages will be downloaded with',
-        default='{date:%Y-%m-%d}_{id}_{filename}.{ext}'
+        default='downloads/{date:%Y-%m-%d}_{id}_{filename}.{ext}'
     )
 
     parser.add_argument(
